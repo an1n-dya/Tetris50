@@ -34,11 +34,12 @@ class Game:
         self.down_speed_faster = self.down_speed * 0.3
         self.down_pressed = False
         self.timers = {
-            'vertical move': Timer(self.down_speed, True, self.move_down),
-            'horizontal move': Timer(MOVE_WAIT_TIME),
-            'rotate': Timer(ROTATE_WAIT_TIME)
+            "vertical move": Timer(self.down_speed, True, self.move_down),
+            "horizontal move": Timer(MOVE_WAIT_TIME),
+            "rotate": Timer(ROTATE_WAIT_TIME),
+            "hard_drop": Timer(DROP_WAIT_TIME)
         }
-        self.timers['vertical move'].activate()
+        self.timers["vertical move"].activate()
 
         # Score
         self.current_level = 1
@@ -48,12 +49,20 @@ class Game:
         # Game Over
         self.game_over = False
         
+        # Input Lock (prevent immediate input on game start)
+        self.input_locked = True
+        self.input_lock_timer = Timer(INPUT_LOCK_TIME, False, self.unlock_input)
+        self.input_lock_timer.activate()
+        
         # Paths
         from os.path import dirname, abspath
         base_path = dirname(dirname(abspath(__file__)))
-        font_path = join(base_path, 'gfx', 'Russo_One.ttf')
+        font_path = join(base_path, "gfx", "Russo_One.ttf")
         
         self.font = pygame.font.Font(font_path, 40)
+    
+    def unlock_input(self):
+        self.input_locked = False
 
     def calculate_score(self, num_lines):
         self.current_lines += num_lines
@@ -63,7 +72,7 @@ class Game:
             self.current_level += 1
             self.down_speed *= 0.75
             self.down_speed_faster = self.down_speed * 0.3
-            self.timers['vertical move'].duration = self.down_speed
+            self.timers["vertical move"].duration = self.down_speed
 
         self.update_score(self.current_lines, self.current_score, self.current_level)
 
@@ -98,9 +107,43 @@ class Game:
     def timer_update(self):
         for timer in self.timers.values():
             timer.update()
+        
+        # Update input lock timer
+        if self.input_locked:
+            self.input_lock_timer.update()
 
     def move_down(self):
         self.tetromino.move_down()
+    
+    def hard_drop(self):
+        drop_distance = 0
+        while not self.tetromino.next_move_vertical_collide(self.tetromino.blocks, drop_distance + 1):
+            drop_distance += 1
+        
+        for block in self.tetromino.blocks:
+            block.pos.y += drop_distance
+        
+        # Add bonus points for hard drop
+        # self.current_score += drop_distance * 2
+        # self.update_score(self.current_lines, self.current_score, self.current_level)
+        
+        # Lock the piece
+        for block in self.tetromino.blocks:
+            if block.pos.y >= 0:
+                self.field_data[int(block.pos.y)][int(block.pos.x)] = block
+        self.create_new_tetromino()
+    
+    def get_shadow_positions(self):
+        drop_distance = 0
+        while not self.tetromino.next_move_vertical_collide(self.tetromino.blocks, drop_distance + 1):
+            drop_distance += 1
+        
+        shadow_positions = []
+        for block in self.tetromino.blocks:
+            shadow_pos = pygame.Vector2(block.pos.x, block.pos.y + drop_distance)
+            shadow_positions.append(shadow_pos)
+        
+        return shadow_positions
         
     def draw_grid(self):
         for col in range(1, COLUMNS):
@@ -113,32 +156,53 @@ class Game:
 
         self.surface.blit(self.line_surface, (0, 0))
 
+    def draw_shadow(self):
+        shadow_positions = self.get_shadow_positions()
+        shadow_surface = pygame.Surface((CELL_SIZE, CELL_SIZE))
+        shadow_surface.fill(self.tetromino.color)
+        shadow_surface.set_alpha(80)
+        
+        for pos in shadow_positions:
+            if pos.y >= 0:
+                rect = shadow_surface.get_rect(topleft=(pos.x * CELL_SIZE, pos.y * CELL_SIZE))
+                self.surface.blit(shadow_surface, rect)
+
     def input(self):
+        # Don"t accept input during grace period
+        if self.input_locked:
+            return
+            
         keys = pygame.key.get_pressed()
 
         # Checking Horizontal Movement
-        if not self.timers['horizontal move'].active:
-            if  keys[pygame.K_LEFT]:
+        if not self.timers["horizontal move"].active:
+            if keys[pygame.K_LEFT]:
                 self.tetromino.move_horizontal(-1)
-                self.timers['horizontal move'].activate()
-            if  keys[pygame.K_RIGHT]:
+                self.timers["horizontal move"].activate()
+            if keys[pygame.K_RIGHT]:
                 self.tetromino.move_horizontal(1)
-                self.timers['horizontal move'].activate()
+                self.timers["horizontal move"].activate()
 
         # Check For Rotation
-        if not self.timers['rotate'].active:
-            if  keys[pygame.K_UP]:
+        if not self.timers["rotate"].active:
+            if keys[pygame.K_UP]:
                 self.tetromino.rotate()
-                self.timers['rotate'].activate()
+                self.timers["rotate"].activate()
+
+        # Hard Drop with Space
+        if not self.timers["hard_drop"].active:
+            if keys[pygame.K_SPACE]:
+                self.hard_drop()
+                self.timers["hard_drop"].activate()
 
         # Down Speedup
         if not self.down_pressed and keys[pygame.K_DOWN]:
             self.down_pressed = True
-            self.timers['vertical move'].duration = self.down_speed_faster
+            self.timers["vertical move"].duration = self.down_speed_faster
 
         if self.down_pressed and not keys[pygame.K_DOWN]:
             self.down_pressed = False
-            self.timers['vertical move'].duration = self.down_speed
+            self.timers["vertical move"].duration = self.down_speed
 
     def check_finished_rows(self):
         # Get The Full Row Indexes
@@ -182,6 +246,11 @@ class Game:
 
     def draw(self):
         self.surface.fill(GRAY)
+        
+        # Draw shadow before actual pieces
+        if not self.game_over:
+            self.draw_shadow()
+        
         self.sprites.draw(self.surface)
 
         self.draw_grid()
@@ -189,11 +258,11 @@ class Game:
         pygame.draw.rect(self.display_surface, LINE_COLOR, self.rect, 2, 2)
 
     def draw_game_over(self):
-        text_surf = self.font.render('GAME OVER', True, 'white')
+        text_surf = self.font.render("GAME OVER", True, "white")
         text_rect = text_surf.get_rect(center=(self.surface.get_width() / 2, self.surface.get_height() / 2))
         
         bg_rect = text_rect.inflate(20, 20)
-        pygame.draw.rect(self.display_surface, 'black', bg_rect.move(PADDING, PADDING))
+        pygame.draw.rect(self.display_surface, "black", bg_rect.move(PADDING, PADDING))
         pygame.draw.rect(self.display_surface, LINE_COLOR, bg_rect.move(PADDING, PADDING), 2)
         
         self.display_surface.blit(text_surf, text_rect.move(PADDING, PADDING))
@@ -202,8 +271,8 @@ class Tetromino:
     def __init__(self, shape, group, create_new_tetromino, field_data):
         # Setup
         self.shape = shape
-        self.block_positions = TETROMINOS[shape]['shape']
-        self.color = TETROMINOS[shape]['color']
+        self.block_positions = TETROMINOS[shape]["shape"]
+        self.color = TETROMINOS[shape]["color"]
         self.create_new_tetromino = create_new_tetromino
         self.field_data = field_data
 
@@ -237,7 +306,7 @@ class Tetromino:
 
     # Rotate
     def rotate(self):
-        if self.shape != 'O':
+        if self.shape != "O":
             # Pivot Point
             pivot_pos = self.blocks[0].pos
 

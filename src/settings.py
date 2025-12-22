@@ -18,31 +18,33 @@ WINDOW_WIDTH = GAME_WIDTH + SIDEBAR_WIDTH + PADDING * 3
 WINDOW_HEIGHT = GAME_HEIGHT + PADDING * 2
 
 # Game Behaviour 
-UPDATE_START_SPEED = 200
+UPDATE_START_SPEED = 400
 MOVE_WAIT_TIME = 200
 ROTATE_WAIT_TIME = 200
+DROP_WAIT_TIME = 200
+INPUT_LOCK_TIME = 300
 BLOCK_OFFSET = pygame.Vector2(COLUMNS // 2 - 1, -1)
 
 # Colors 
-YELLOW      = '#f1e60d'
-RED         = '#e51b20'
-BLUE        = '#204b9b'
-GREEN       = '#65b32e'
-PURPLE      = '#7b217f'
-CYAN        = '#6cc6d9'
-ORANGE      = '#f07e13'
-GRAY        = '#1C1C1C'
-LINE_COLOR  = '#FFFFFF'
+YELLOW      = "#f1e60d"
+RED         = "#e51b20"
+BLUE        = "#204b9b"
+GREEN       = "#65b32e"
+PURPLE      = "#7b217f"
+CYAN        = "#6cc6d9"
+ORANGE      = "#f07e13"
+GRAY        = "#1C1C1C"
+LINE_COLOR  = "#FFFFFF"
 
 # Shapes
 TETROMINOS = {
-	'T': {'shape': [(0,0), (-1,0), (1,0), (0,-1)],  'color': PURPLE},
-	'O': {'shape': [(0,0), (0,-1), (1,0), (1,-1)],  'color': YELLOW},
-	'J': {'shape': [(0,0), (0,-1), (0,1), (-1,1)],  'color': BLUE},
-	'L': {'shape': [(0,0), (0,-1), (0,1), (1,1)],   'color': ORANGE},
-	'I': {'shape': [(0,0), (-1,0), (1,0), (2,0)],   'color': CYAN},
-	'S': {'shape': [(0,0), (-1,0), (0,-1), (1,-1)], 'color': GREEN},
-	'Z': {'shape': [(0,0), (1,0), (0,-1), (-1,-1)], 'color': RED}
+	"T": {"shape": [(0,0), (-1,0), (1,0), (0,-1)],  "color": PURPLE},
+	"O": {"shape": [(0,0), (0,-1), (1,0), (1,-1)],  "color": YELLOW},
+	"J": {"shape": [(0,0), (0,-1), (0,1), (-1,1)],  "color": BLUE},
+	"L": {"shape": [(0,0), (0,-1), (0,1), (1,1)],   "color": ORANGE},
+	"I": {"shape": [(0,0), (-1,0), (1,0), (2,0)],   "color": CYAN},
+	"S": {"shape": [(0,0), (-1,0), (0,-1), (1,-1)], "color": GREEN},
+	"Z": {"shape": [(0,0), (1,0), (0,-1), (-1,-1)], "color": RED}
 }
 
 SCORE_DATA = {1: 40, 2: 100, 3: 300, 4: 1200}

@@ -14,7 +14,7 @@ class Main:
         pygame.init()
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.clock = pygame.time.Clock()
-        pygame.display.set_caption('Tetris 50')
+        pygame.display.set_caption("Tetris 50")
 
         # Shapes
         self.bag = []
@@ -49,9 +49,16 @@ class Main:
                     pygame.quit()
                     exit()
 
-                if self.game.game_over and event.type == pygame.KEYDOWN:
-                    self.game = Game(self.get_next_shape, self.update_score)
-                    self.score = Score()
+                if event.type == pygame.KEYDOWN:
+                    # ESC to exit game
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        exit()
+                    
+                    # Restart game after game over (any key)
+                    if self.game.game_over:
+                        self.game = Game(self.get_next_shape, self.update_score)
+                        self.score = Score()
 
             # Display
             self.display_surface.fill(GRAY)
@@ -65,6 +72,6 @@ class Main:
             pygame.display.update()
             self.clock.tick()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main = Main()
     main.run()

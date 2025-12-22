@@ -15,7 +15,7 @@ class Preview:
         base_path = dirname(dirname(abspath(__file__)))
         
         # Shapes
-        self.shape_surfaces = {shape: load(join(base_path, 'gfx', f'{shape}.png')).convert_alpha() for shape in TETROMINOS.keys()}
+        self.shape_surfaces = {shape: load(join(base_path, "gfx", f"{shape}.png")).convert_alpha() for shape in TETROMINOS.keys()}
 
         # Image Position Data
         self.increment_height = self.surface.get_height() / 3

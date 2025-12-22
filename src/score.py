@@ -12,7 +12,7 @@ class Score:
         # Paths
         from os.path import dirname, abspath
         base_path = dirname(dirname(abspath(__file__)))
-        font_path = join(base_path, 'gfx', 'Russo_One.ttf')
+        font_path = join(base_path, "gfx", "Russo_One.ttf")
 
         # Font
         self.font = pygame.font.Font(font_path, 30)
@@ -26,13 +26,13 @@ class Score:
         self.lines = 0
 
     def display_text(self, pos, text):
-        text_surface = self.font.render(f'{text[0]}: {text[1]}', True, 'white')
+        text_surface = self.font.render(f"{text[0]}: {text[1]}", True, "white")
         text_rect = text_surface.get_rect(center = pos)
         self.surface.blit(text_surface, text_rect)
 
     def run(self):
         self.surface.fill(GRAY)
-        for i, text in enumerate([('Score', self.score), ('Level', self.level), ('Lines', self.lines)]):
+        for i, text in enumerate([("Score", self.score), ("Level", self.level), ("Lines", self.lines)]):
             x = self.surface.get_width() / 2
             y = self.increment_height / 2 + i * self.increment_height
             self.display_text((x, y), text)
