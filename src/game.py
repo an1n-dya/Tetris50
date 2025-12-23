@@ -1,5 +1,4 @@
 from settings import *
-from os.path import join
 
 from timer import Timer
 
@@ -55,9 +54,7 @@ class Game:
         self.input_lock_timer.activate()
         
         # Paths
-        from os.path import dirname, abspath
-        base_path = dirname(dirname(abspath(__file__)))
-        font_path = join(base_path, "gfx", "Russo_One.ttf")
+        font_path = join(BASE_PATH, "gfx", "Russo_One.ttf")
         
         self.font = pygame.font.Font(font_path, 40)
     
@@ -68,10 +65,10 @@ class Game:
         self.current_lines += num_lines
         self.current_score += SCORE_DATA[num_lines] * self.current_level
 
-        if self.current_lines >= self.current_level * 10:
+        if self.current_lines >= self.current_level * 5:
             self.current_level += 1
-            self.down_speed *= 0.75
-            self.down_speed_faster = self.down_speed * 0.3
+            self.down_speed *= 0.9
+            self.down_speed_faster = self.down_speed * 0.8
             self.timers["vertical move"].duration = self.down_speed
 
         self.update_score(self.current_lines, self.current_score, self.current_level)
@@ -124,8 +121,8 @@ class Game:
             block.pos.y += drop_distance
         
         # Add bonus points for hard drop
-        # self.current_score += drop_distance * 2
-        # self.update_score(self.current_lines, self.current_score, self.current_level)
+        self.current_score += drop_distance * 2
+        self.update_score(self.current_lines, self.current_score, self.current_level)
         
         # Lock the piece
         for block in self.tetromino.blocks:

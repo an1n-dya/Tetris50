@@ -1,7 +1,5 @@
 from settings import *
 
-from os.path import join
-
 class Score:
     def __init__(self):
         # General
@@ -10,9 +8,7 @@ class Score:
         self.display_surface = pygame.display.get_surface()
 
         # Paths
-        from os.path import dirname, abspath
-        base_path = dirname(dirname(abspath(__file__)))
-        font_path = join(base_path, "gfx", "Russo_One.ttf")
+        font_path = join(BASE_PATH, "gfx", "Russo_One.ttf")
 
         # Font
         self.font = pygame.font.Font(font_path, 30)

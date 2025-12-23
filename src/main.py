@@ -7,6 +7,7 @@ from random import choice, shuffle
 from game import Game
 from score import Score
 from preview import Preview
+from start_menu import StartMenu
 
 class Main:
     def __init__(self):
@@ -15,6 +16,12 @@ class Main:
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.clock = pygame.time.Clock()
         pygame.display.set_caption("Tetris 50")
+
+        # Game state
+        self.game_state = "menu"  # "menu" or "playing"
+        
+        # Start Menu
+        self.start_menu = StartMenu()
 
         # Shapes
         self.bag = []
@@ -55,22 +62,38 @@ class Main:
                         pygame.quit()
                         exit()
                     
-                    # Restart game after game over (any key)
-                    if self.game.game_over:
+                    # Handle menu state
+                    if self.game_state == "menu":
+                        # Any key starts the game
+                        self.game_state = "playing"
+                        # Activate timers to prevent immediate input
+                        self.game.timers["hard_drop"].activate()
+                        self.game.timers["horizontal move"].activate()
+                        self.game.timers["rotate"].activate()
+                    
+                    # Restart game after game over (any key except ESC)
+                    elif self.game.game_over:
                         self.game = Game(self.get_next_shape, self.update_score)
                         self.score = Score()
+                        # Activate timers to prevent immediate input on restart
+                        self.game.timers["hard_drop"].activate()
+                        self.game.timers["horizontal move"].activate()
+                        self.game.timers["rotate"].activate()
 
-            # Display
-            self.display_surface.fill(GRAY)
-
-            # Components
-            self.game.run()
-            self.score.run()
-            self.preview.run(self.next_shapes)
+            # Display based on game state
+            if self.game_state == "menu":
+                self.start_menu.run()
+            else:
+                self.display_surface.fill(GRAY)
+                
+                # Components
+                self.game.run()
+                self.score.run()
+                self.preview.run(self.next_shapes)
 
             # Updating
             pygame.display.update()
-            self.clock.tick()
+            self.clock.tick(FPS)
 
 if __name__ == "__main__":
     main = Main()

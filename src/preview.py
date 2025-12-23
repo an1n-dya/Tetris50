@@ -1,7 +1,6 @@
 from settings import *
 
 from pygame.image import load
-from os.path import join
 
 class Preview:
     def __init__(self):
@@ -10,12 +9,8 @@ class Preview:
         self.rect = self.surface.get_rect(topright = (WINDOW_WIDTH - PADDING, PADDING))
         self.display_surface = pygame.display.get_surface()
 
-        # Paths
-        from os.path import dirname, abspath
-        base_path = dirname(dirname(abspath(__file__)))
-        
         # Shapes
-        self.shape_surfaces = {shape: load(join(base_path, "gfx", f"{shape}.png")).convert_alpha() for shape in TETROMINOS.keys()}
+        self.shape_surfaces = {shape: load(join(BASE_PATH, "gfx", f"{shape}.png")).convert_alpha() for shape in TETROMINOS.keys()}
 
         # Image Position Data
         self.increment_height = self.surface.get_height() / 3

@@ -1,8 +1,12 @@
-import pygame 
+import pygame
+from os.path import dirname, abspath, join 
+
+# Base Path
+BASE_PATH = dirname(dirname(abspath(__file__)))
 
 # Game Size 
-ROWS = 20
-COLUMNS = 10
+ROWS = 24
+COLUMNS = 12
 CELL_SIZE = 40
 GAME_WIDTH = COLUMNS * CELL_SIZE
 GAME_HEIGHT = ROWS * CELL_SIZE
@@ -18,6 +22,7 @@ WINDOW_WIDTH = GAME_WIDTH + SIDEBAR_WIDTH + PADDING * 3
 WINDOW_HEIGHT = GAME_HEIGHT + PADDING * 2
 
 # Game Behaviour 
+FPS = 60
 UPDATE_START_SPEED = 400
 MOVE_WAIT_TIME = 200
 ROTATE_WAIT_TIME = 200
