@@ -57,6 +57,10 @@ class Game:
         font_path = join(BASE_PATH, "gfx", "Russo_One.ttf")
         
         self.font = pygame.font.Font(font_path, 40)
+
+        # Audio
+        self.game_over_sound = pygame.mixer.Sound(join(BASE_PATH, "sfx", "game-over.mp3"))
+        self.next_level_sound = pygame.mixer.Sound(join(BASE_PATH, "sfx", "next-level.mp3"))
     
     def unlock_input(self):
         self.input_locked = False
@@ -70,6 +74,7 @@ class Game:
             self.down_speed *= 0.9
             self.down_speed_faster = self.down_speed * 0.8
             self.timers["vertical move"].duration = self.down_speed
+            self.next_level_sound.play()
 
         self.update_score(self.current_lines, self.current_score, self.current_level)
 
@@ -77,6 +82,7 @@ class Game:
         for block in self.tetromino.blocks:
             if block.pos.y < 0:
                 self.game_over = True
+                self.game_over_sound.play()
                 for timer in self.timers.values():
                     timer.deactivate()
                 return
@@ -90,6 +96,7 @@ class Game:
 
         if self.check_game_over():
             self.game_over = True
+            self.game_over_sound.play()
             for timer in self.timers.values():
                 timer.deactivate()
 
@@ -121,7 +128,7 @@ class Game:
             block.pos.y += drop_distance
         
         # Add bonus points for hard drop
-        self.current_score += drop_distance * 2
+        self.current_score += int(drop_distance * 0.4)
         self.update_score(self.current_lines, self.current_score, self.current_level)
         
         # Lock the piece
@@ -310,23 +317,46 @@ class Tetromino:
             # New Block Position
             new_block_positions = [block.rotate(pivot_pos) for block in self.blocks]
 
-            # Collision Check
-            for pos in new_block_positions:
-                # Horizontal Check
-                if pos.x < 0 or pos.x >= COLUMNS:
-                    return
+            # Helper to check collision for a set of positions
+            def check_collision(positions):
+                for pos in positions:
+                    # Horizontal Check
+                    if pos.x < 0 or pos.x >= COLUMNS:
+                        return True
+                    # Vertical / Floor Check
+                    if pos.y >= ROWS:
+                        return True
+                    # Field Check ->  Collision With Other Pieces
+                    if pos.y >= 0 and self.field_data[int(pos.y)][int(pos.x)]:
+                        return True
+                return False
 
-                # Vertical / Floor Check
-                if pos.y >= ROWS:
-                    return
+            # 1. Try default rotation
+            if not check_collision(new_block_positions):
+                for i, block in enumerate(self.blocks):
+                    block.pos = new_block_positions[i]
+                return
 
-                # Field Check ->  Collision With Other Pieces
-                if pos.y >= 0 and self.field_data[int(pos.y)][int(pos.x)]:
-                    return
+            # 2. Wall Kicks (Right)
+            positions_right = [pos + pygame.Vector2(1, 0) for pos in new_block_positions]
+            if not check_collision(positions_right):
+                for i, block in enumerate(self.blocks):
+                    block.pos = positions_right[i]
+                return
 
-            # Implement New Positions
-            for i, block in enumerate(self.blocks):
-                block.pos = new_block_positions[i]
+            # 3. Wall Kicks (Left)
+            positions_left = [pos + pygame.Vector2(-1, 0) for pos in new_block_positions]
+            if not check_collision(positions_left):
+                for i, block in enumerate(self.blocks):
+                    block.pos = positions_left[i]
+                return
+            
+            # 4. Floor Kicks (Up)
+            positions_up = [pos + pygame.Vector2(0, -1) for pos in new_block_positions]
+            if not check_collision(positions_up):
+                for i, block in enumerate(self.blocks):
+                    block.pos = positions_up[i]
+                return
 
 class Block(pygame.sprite.Sprite):
     def __init__(self, group, pos, color):

@@ -4,8 +4,9 @@ import math
 from random import randint, choice
 
 class StartMenu:
-    def __init__(self):
+    def __init__(self, high_score=0):
         self.display_surface = pygame.display.get_surface()
+        self.high_score = high_score
         
         # Paths
         font_path = join(BASE_PATH, "gfx", "Russo_One.ttf")
@@ -45,6 +46,7 @@ class StartMenu:
         self.spawn_delay = 30
         
         # Layout constants (proportional to window size)
+        self.high_score_y_ratio = 0.55   # 55% down the screen
         self.instruction_y_ratio = 0.65  # 65% down the screen
         self.controls_y_ratio = 0.75     # 75% down the screen
         self.control_spacing = 25        # Pixels between control lines
@@ -53,7 +55,7 @@ class StartMenu:
         # Initialize some background blocks
         for _ in range(15):
             self.spawn_background_block()
-    
+
     def spawn_background_block(self):
         x = randint(0, WINDOW_WIDTH)
         y = randint(-WINDOW_HEIGHT, 0)
@@ -119,6 +121,25 @@ class StartMenu:
         
         # Draw logo
         self.display_surface.blit(self.logo, logo_pos)
+
+    def draw_high_score(self):
+        if self.high_score > 0:
+            text = f"High Score: {self.high_score}"
+            score_surf = self.instruction_font.render(text, True, YELLOW)
+            
+            # Add a slight shadow/outline
+            outline_surf = self.instruction_font.render(text, True, "black")
+            
+            center_pos = (WINDOW_WIDTH // 2, int(WINDOW_HEIGHT * self.high_score_y_ratio))
+            rect = score_surf.get_rect(center=center_pos)
+            
+            # Draw outline (offset)
+            outline_rect = rect.copy()
+            outline_rect.x += 2
+            outline_rect.y += 2
+            self.display_surface.blit(outline_surf, outline_rect)
+            
+            self.display_surface.blit(score_surf, rect)
     
     def draw_instructions(self):
         # Pulsing "Press Any Key" text
@@ -140,7 +161,8 @@ class StartMenu:
             "UP : Rotate",
             "DOWN : Soft Drop",
             "SPACE : Hard Drop",
-            "ESC : Exit"
+            "M : Mute/Unmute Theme",
+            "ESC : Pause / Exit"
         ]
         
         small_font = pygame.font.Font(None, 20)
@@ -200,7 +222,9 @@ class StartMenu:
         self.draw_background_blocks()
         self.draw_decorative_border()
         self.draw_logo()
+        self.draw_high_score()
         self.draw_instructions()
         self.draw_credits()
         
-        return False  # Return True when user presses a key (handled in main.py)
+        return True  # Menu is still active
+
